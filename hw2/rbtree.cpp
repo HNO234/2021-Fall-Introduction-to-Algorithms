@@ -135,6 +135,68 @@ private:
       root->color = BLACK;
   }
 
+  void delete_fixup(node *x) { // note NIL color
+    while (x != root && x->color == BLACK) {
+      if (x == x->p->left) {
+        node *w = x->p->right; // != NIL
+        if (w->color == RED) { // case 1
+          w->color = BLACK;
+          x->p->color = RED;
+          left_rotate(x->p);
+          w = x->p->right;
+        }
+        if ((w->left == NIL || w->left->color == BLACK) &&
+            (w->right == NIL || w->right->color == BLACK)) {
+          w->color = RED;
+          x = x->p;
+        } else {
+          if (w->right == NIL || w->right->color == BLACK) {
+            if (w->left != NIL)
+              w->left->color = BLACK;
+            w->color = RED;
+            right_rotate(w);
+            w = x->p->right;
+          }
+          w->color = x->p->color;
+          x->p->color = BLACK;
+          if (w->right != NIL)
+            w->right->color = BLACK;
+          left_rotate(x->p);
+          x = root;
+        }
+      } else {                 //!!!
+        node *w = x->p->left;  // != NIL
+        if (w->color == RED) { // case 1
+          w->color = BLACK;
+          x->p->color = RED;
+          right_rotate(x->p);
+          w = x->p->left;
+        }
+        if ((w->left == NIL || w->left->color == BLACK) &&
+            (w->right == NIL || w->right->color == BLACK)) {
+          w->color = RED;
+          x = x->p;
+        } else {
+          if (w->left == NIL || w->left->color == BLACK) {
+            if (w->right != NIL)
+              w->right->color = BLACK;
+            w->color = RED;
+            left_rotate(w);
+            w = x->p->left;
+          }
+          w->color = x->p->color;
+          x->p->color = BLACK;
+          if (w->left != NIL)
+            w->left->color = BLACK;
+          right_rotate(x->p);
+          x = root;
+        }
+      }
+    }
+    if (x != NIL)
+      x->color = BLACK;
+  }
+
 public:
   rbtree() : root(NIL) {}
 
