@@ -60,7 +60,7 @@ private:
     while (z->p != NIL && z->p->color == RED) {
       if (z->p == z->p->p->left) {
         node *y = z->p->p->right;
-        if (y->color == RED) { // case 1
+        if (y != NIL && y->color == RED) { // case 1
           z->p->color = BLACK;
           y->color = BLACK;
           z->p->p->color = RED;
@@ -76,7 +76,7 @@ private:
         }
       } else {
         node *y = z->p->p->left;
-        if (y->color == RED) { // case 1
+        if (y != NIL && y->color == RED) { // case 1
           z->p->color = BLACK;
           y->color = BLACK;
           z->p->p->color = RED;
@@ -92,7 +92,8 @@ private:
         }
       }
     }
-    root->color = BLACK;
+    if (root != NIL)
+      root->color = BLACK;
   }
 
 public:
