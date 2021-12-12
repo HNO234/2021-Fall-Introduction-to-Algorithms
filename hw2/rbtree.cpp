@@ -61,6 +61,35 @@ private:
     x->p = y;
   }
 
+  void transplant(node *u, node *v) {
+    if (u->p == NIL)
+      root = v;
+    else if (u == u->p->left)
+      u->p->left = v;
+    else
+      u->p->right = v;
+    v->p = u->p;
+  }
+
+  node *tree_search(int x) {
+    node *y = root;
+    while (y != NIL) {
+      if (y->key == x)
+        break;
+      else if (y->key > x)
+        y = y->left;
+      else
+        y = y->right;
+    }
+    return y;
+  }
+
+  node *tree_minimum(node *x) {
+    while (x->left != NIL)
+      x = x->left;
+    return x;
+  }
+
   void insert_fixup(node *z) {
     if (z == root) {
       root->color = BLACK;
@@ -131,7 +160,35 @@ public:
     insert_fixup(z);
   }
 
-  void erase(int z) {}
+  void erase(int _z) {
+    node *z = tree_search(_z), *y = z, *x;
+    bool y_ori_color = y->color;
+    if (z->left == NIL) {
+      x = z->right;
+      transplant(z, z->right);
+    } else if (z->right == NIL) {
+      x = z->left;
+      transplant(z, z->left);
+    } else {
+      y = tree_minimum(z->right);
+      y_ori_color = y->color;
+      x = y->right;
+      if (y->p == z)
+        x->p = y;
+      else {
+        transplant(y, y->right);
+        y->right = z->right;
+        y->right->p = y;
+      }
+      transplant(z, y);
+      y->left = z->left;
+      y->left->p = y;
+      y->color = z->color;
+    }
+    delete z;
+    if (y_ori_color == BLACK)
+      delete_fixup(x);
+  }
 
   void inorder_traversal(node *z = NIL) {
     if (z == NIL)
