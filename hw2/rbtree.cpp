@@ -17,6 +17,16 @@ private:
   };
   node *root;
 
+  void recursive_delete(node *z) {
+    if (z == NIL)
+      return;
+    if (z->left != NIL)
+      recursive_delete(z->left);
+    if (z->right != NIL)
+      recursive_delete(z->right);
+    delete z;
+  }
+
   void left_rotate(node *x) {
     node *y = x->right;
     assert(y != NIL);
@@ -99,6 +109,8 @@ private:
 public:
   rbtree() : root(NIL) {}
 
+  ~rbtree() { recursive_delete(root); }
+
   void insert(int _z) {
     cerr << _z << endl;
     node *y = NIL, *x = root, *z = new node(_z);
@@ -124,6 +136,8 @@ public:
   void inorder_traversal(node *z = NIL) {
     if (z == NIL)
       z = root;
+    if (root == NIL)
+      return;
 
     if (z->left != NIL)
       inorder_traversal(z->left);
