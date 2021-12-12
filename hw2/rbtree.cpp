@@ -1,6 +1,6 @@
 #include <cassert>
 #include <iostream>
-using namespace std;
+#include <vector>
 
 #define RED true
 #define BLACK false
@@ -68,7 +68,8 @@ private:
       u->p->left = v;
     else
       u->p->right = v;
-    v->p = u->p;
+    if (v != NIL)
+      v->p = u->p;
   }
 
   node *tree_search(int x) {
@@ -135,60 +136,64 @@ private:
       root->color = BLACK;
   }
 
-  void delete_fixup(node *x) { // note NIL color
-    while (x != root && x->color == BLACK) {
-      if (x == x->p->left) {
-        node *w = x->p->right; // != NIL
-        if (w->color == RED) { // case 1
+  void delete_fixup(node *x, node *xp) { // xp != NIL
+    assert(x == NIL || x->p == xp);
+    while (x != root && (x == NIL || x->color == BLACK)) {
+      if (x == xp->left) {
+        node *w = xp->right; // w != NIL
+        if (w->color == RED) {
           w->color = BLACK;
-          x->p->color = RED;
-          left_rotate(x->p);
-          w = x->p->right;
+          xp->color = RED;
+          left_rotate(xp);
+          w = xp->right;
         }
         if ((w->left == NIL || w->left->color == BLACK) &&
             (w->right == NIL || w->right->color == BLACK)) {
           w->color = RED;
-          x = x->p;
+          x = xp;
+          xp = x->p;
         } else {
           if (w->right == NIL || w->right->color == BLACK) {
             if (w->left != NIL)
               w->left->color = BLACK;
             w->color = RED;
             right_rotate(w);
-            w = x->p->right;
+            w = xp->right;
           }
-          w->color = x->p->color;
-          x->p->color = BLACK;
+          w->color = xp->color;
+          xp->color = BLACK;
           if (w->right != NIL)
             w->right->color = BLACK;
-          left_rotate(x->p);
+          left_rotate(xp);
           x = root;
+          xp = NIL;
         }
-      } else {                 //!!!
-        node *w = x->p->left;  // != NIL
-        if (w->color == RED) { // case 1
+      } else {
+        node *w = xp->left; // != NIL
+        if (w->color == RED) {
           w->color = BLACK;
-          x->p->color = RED;
-          right_rotate(x->p);
-          w = x->p->left;
+          xp->color = RED;
+          right_rotate(xp);
+          w = xp->left;
         }
         if ((w->left == NIL || w->left->color == BLACK) &&
             (w->right == NIL || w->right->color == BLACK)) {
           w->color = RED;
-          x = x->p;
+          x = xp;
+          xp = x->p;
         } else {
           if (w->left == NIL || w->left->color == BLACK) {
             if (w->right != NIL)
               w->right->color = BLACK;
             w->color = RED;
             left_rotate(w);
-            w = x->p->left;
+            w = xp->left;
           }
-          w->color = x->p->color;
-          x->p->color = BLACK;
+          w->color = xp->color;
+          xp->color = BLACK;
           if (w->left != NIL)
             w->left->color = BLACK;
-          right_rotate(x->p);
+          right_rotate(xp);
           x = root;
         }
       }
@@ -203,7 +208,6 @@ public:
   ~rbtree() { recursive_delete(root); }
 
   void insert(int _z) {
-    cerr << _z << endl;
     node *y = NIL, *x = root, *z = new node(_z);
     while (x != NIL) {
       y = x;
@@ -223,24 +227,32 @@ public:
   }
 
   void erase(int _z) {
-    node *z = tree_search(_z), *y = z, *x;
+    node *z = tree_search(_z), *y = z, *x, *xp;
+    assert(z != NIL && z->key == _z);
     bool y_ori_color = y->color;
     if (z->left == NIL) {
       x = z->right;
+      xp = z->p;
       transplant(z, z->right);
     } else if (z->right == NIL) {
       x = z->left;
+      xp = z->p;
       transplant(z, z->left);
     } else {
       y = tree_minimum(z->right);
+      if (y->p == z)
+        xp = y;
+      else
+        xp = y->p;
       y_ori_color = y->color;
       x = y->right;
-      if (y->p == z)
+      if (y->p == z && x != NIL)
         x->p = y;
       else {
         transplant(y, y->right);
         y->right = z->right;
-        y->right->p = y;
+        if (y->right != NIL)
+          y->right->p = y;
       }
       transplant(z, y);
       y->left = z->left;
@@ -249,7 +261,7 @@ public:
     }
     delete z;
     if (y_ori_color == BLACK)
-      delete_fixup(x);
+      delete_fixup(x, xp);
   }
 
   void inorder_traversal(node *z = NIL) {
@@ -261,12 +273,12 @@ public:
     if (z->left != NIL)
       inorder_traversal(z->left);
 
-    cout << "key: " << z->key << " ";
+    std::cout << "key: " << z->key << " ";
     if (z->p == NIL)
-      cout << "parent:   ";
+      std::cout << "parent:   ";
     else
-      cout << "parent: " << z->p->key << " ";
-    cout << "color: " << (z->color == RED ? "red" : "black") << endl;
+      std::cout << "parent: " << z->p->key << " ";
+    std::cout << "color: " << (z->color == RED ? "red" : "black") << std::endl;
 
     if (z->right != NIL)
       inorder_traversal(z->right);
@@ -274,10 +286,32 @@ public:
 };
 
 int main() {
-  rbtree s;
-  int x;
-  while (cin >> x) {
-    s.insert(x);
+  rbtree tree;
+  int t;
+  std::cin >> t;
+  while (t--) {
+    int op, n;
+    std::cin >> op >> n;
+    std::vector<int> a(n);
+    for (int &i : a)
+      std::cin >> i;
+    if (op == 1)
+      std::cout << "Insert:";
+    else
+      std::cout << "Delete:";
+    for (int i = 0; i < n; i++) {
+      std::cout << ' ' << a[i];
+      if (i < n - 1)
+        std::cout << ',';
+    }
+    std::cout << std::endl;
+
+    if (op == 1)
+      for (int i : a)
+        tree.insert(i);
+    else
+      for (int i : a)
+        tree.erase(i);
+    tree.inorder_traversal();
   }
-  s.inorder_traversal();
 }
