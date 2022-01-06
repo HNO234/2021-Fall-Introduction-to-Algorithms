@@ -136,7 +136,7 @@ private:
       root->color = BLACK;
   }
 
-  void delete_fixup(node *x, node *xp) { // xp != NIL
+  void delete_fixup(node *x, node *xp) {
     assert(x == NIL || x->p == xp);
     while (x != root && (x == NIL || x->color == BLACK)) {
       if (x == xp->left) {
@@ -169,7 +169,7 @@ private:
           xp = NIL;
         }
       } else {
-        node *w = xp->left; // != NIL
+        node *w = xp->left; // w != NIL
         if (w->color == RED) {
           w->color = BLACK;
           xp->color = RED;
